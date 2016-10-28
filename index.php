@@ -167,7 +167,7 @@ $app->group('/ewallet', function () use ($app) {
         ping();
     });
 
-    $app->put('/books/:id', function ($id) {
+    $app->post('/books/:id', function ($id) {
 
     });
 
@@ -178,9 +178,13 @@ $app->group('/ewallet', function () use ($app) {
 
 function ping(){
     $app = \Slim\Slim::getInstance();
-    $pong = 1;
+    $output["pong"] = 1;
     $app->response()->headers->set('Content-Type', 'application/json');
-    echo json_encode($pong);
+    echo json_encode($output);
+}
+
+function quorum(){
+    
 }
 
 /**
