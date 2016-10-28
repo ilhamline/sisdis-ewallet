@@ -160,6 +160,29 @@ $app->delete(
     }
 );
 
+// API group
+$app->group('/ewallet', function () use ($app) {
+
+    $app->get('/ping', function () {
+        ping();
+    });
+
+    $app->put('/books/:id', function ($id) {
+
+    });
+
+    $app->delete('/books/:id', function ($id) {
+
+    });
+});
+
+function ping(){
+    $app = \Slim\Slim::getInstance();
+    $pong = 1;
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo json_encode($pong);
+}
+
 /**
  * Step 4: Run the Slim application
  *
