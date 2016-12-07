@@ -1,196 +1,298 @@
 <?php
-/**
- * Step 1: Require the Slim Framework
- *
- * If you are not using Composer, you need to require the
- * Slim Framework and register its PSR-0 autoloader.
- *
- * If you are using Composer, you can skip this step.
- */
 require 'Slim/Slim.php';
-
 \Slim\Slim::registerAutoloader();
-
-/**
- * Step 2: Instantiate a Slim application
- *
- * This example instantiates a Slim application using
- * its default settings. However, you will usually configure
- * your Slim application now by passing an associative array
- * of setting names and values into the application constructor.
- */
 $app = new \Slim\Slim();
+$servername = 'localhost';
+$username = 'root';
+$password = 'root';
+$dbname = 'sisdis';
+$env = 'http://ilham.sisdis.ui.ac.id/';
 
-/**
- * Step 3: Define the Slim application routes
- *
- * Here we define several Slim application routes that respond
- * to appropriate HTTP request methods. In this example, the second
- * argument for `Slim::get`, `Slim::post`, `Slim::put`, `Slim::patch`, and `Slim::delete`
- * is an anonymous function.
- */
+$conn = mysqli_connect($servername, $username, $password, $dbname);
+if (!$conn) {
+	die("Connection failed: " . mysqli_connect_error());
+}
 
-// GET route
-$app->get(
-    '/',
-    function () {
-        $template = <<<EOT
-<!DOCTYPE html>
-    <html>
-        <head>
-            <meta charset="utf-8"/>
-            <title>Slim Framework for PHP 5</title>
-            <style>
-                html,body,div,span,object,iframe,
-                h1,h2,h3,h4,h5,h6,p,blockquote,pre,
-                abbr,address,cite,code,
-                del,dfn,em,img,ins,kbd,q,samp,
-                small,strong,sub,sup,var,
-                b,i,
-                dl,dt,dd,ol,ul,li,
-                fieldset,form,label,legend,
-                table,caption,tbody,tfoot,thead,tr,th,td,
-                article,aside,canvas,details,figcaption,figure,
-                footer,header,hgroup,menu,nav,section,summary,
-                time,mark,audio,video{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent;}
-                body{line-height:1;}
-                article,aside,details,figcaption,figure,
-                footer,header,hgroup,menu,nav,section{display:block;}
-                nav ul{list-style:none;}
-                blockquote,q{quotes:none;}
-                blockquote:before,blockquote:after,
-                q:before,q:after{content:'';content:none;}
-                a{margin:0;padding:0;font-size:100%;vertical-align:baseline;background:transparent;}
-                ins{background-color:#ff9;color:#000;text-decoration:none;}
-                mark{background-color:#ff9;color:#000;font-style:italic;font-weight:bold;}
-                del{text-decoration:line-through;}
-                abbr[title],dfn[title]{border-bottom:1px dotted;cursor:help;}
-                table{border-collapse:collapse;border-spacing:0;}
-                hr{display:block;height:1px;border:0;border-top:1px solid #cccccc;margin:1em 0;padding:0;}
-                input,select{vertical-align:middle;}
-                html{ background: #EDEDED; height: 100%; }
-                body{background:#FFF;margin:0 auto;min-height:100%;padding:0 30px;width:440px;color:#666;font:14px/23px Arial,Verdana,sans-serif;}
-                h1,h2,h3,p,ul,ol,form,section{margin:0 0 20px 0;}
-                h1{color:#333;font-size:20px;}
-                h2,h3{color:#333;font-size:14px;}
-                h3{margin:0;font-size:12px;font-weight:bold;}
-                ul,ol{list-style-position:inside;color:#999;}
-                ul{list-style-type:square;}
-                code,kbd{background:#EEE;border:1px solid #DDD;border:1px solid #DDD;border-radius:4px;-moz-border-radius:4px;-webkit-border-radius:4px;padding:0 4px;color:#666;font-size:12px;}
-                pre{background:#EEE;border:1px solid #DDD;border-radius:4px;-moz-border-radius:4px;-webkit-border-radius:4px;padding:5px 10px;color:#666;font-size:12px;}
-                pre code{background:transparent;border:none;padding:0;}
-                a{color:#70a23e;}
-                header{padding: 30px 0;text-align:center;}
-            </style>
-        </head>
-        <body>
-            <header>
-                <a href="http://www.slimframework.com"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHIAAAA6CAYAAABs1g18AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAABRhJREFUeNrsXY+VsjAMR98twAo6Ao4gI+gIOIKOgCPICDoCjCAjXFdgha+5C3dcv/QfFB5i8h5PD21Bfk3yS9L2VpGnlGW5kS9wJMTHNRxpmjYRy6SycgRvL18OeMQOTYQ8HvIoJKiiz43hgHkq1zvK/h6e/TyJQXeV/VyWBOSHA4C5RvtMAiCc4ZB9FPjgRI8+YuKcrySO515a1hoAY3nc4G2AH52BZsn+MjaAEwIJICKAIR889HljMCcyrR0QE4v/q/BVBQva7Q1tAczG18+x+PvIswHEAslLbfGrMZKiXEOMAMy6LwlisQCJLPFMfKdBtli5dIihRyH7A627Iaiq5sJ1ThP9xoIgSdWSNVIHYmrTQgOgRyRNqm/M5PnrFFopr3F6B41cd8whRUSufUBU5EL4U93AYRnIWimCIiSI1wAaAZpJ9bPnxx8eyI3Gt4QybwWa6T/BvbQECUMQFkhd3jSkPFgrxwcynuBaNT/u6eJIlbGOBWSNIUDFEIwPZFAtBfYrfeIOSRSXuUYCsprCXwUIZWYnmEhJFMIocMDWjn206c2EsGLCJd42aWSyBNMnHxLEq7niMrY2qyDbQUbqrrTbwUPtxN1ZZCitQV4ZSd6DyoxhmRD6OFjuRUS/KdLGRHYowJZaqYgjt9Lchmi3QYA/cXBsHK6VfWNR5jgA1DLhwfFe4HqfODBpINEECCLO47LT/+HSvSd/OCOgQ8qE0DbHQUBqpC4BkKMPYPkFY4iAJXhGAYr1qmaqQDbECCg5A2NMchzR567aA4xcRKclI405Bmt46vYD7/Gcjqfk6GP/kh1wovIDSHDfiAs/8bOCQ4cf4qMt7eH5Cucr3S0aWGFfjdLHD8EhCFvXQlSqRrY5UV2O9cfZtk77jUFMXeqzCEZqSK4ICkSin2tE12/3rbVcE41OBjBjBPSdJ1N5lfYQpIuhr8axnyIy5KvXmkYnw8VbcwtTNj7fDNCmT2kPQXA+bxpEXkB21HlnSQq0gD67jnfh5KavVJa/XQYEFSaagWwbgjNA+ywstLpEWTKgc5gwVpsyO1bTII+tA6B7BPS+0PiznuM9gPKsPVXbFdADMtwbJxSmkXWfRh6AZhyyzBjIHoDmnCGaMZAKjd5hyNJYCBGDOVcg28AXQ5atAVDO3c4dSALQnYblfa3M4kc/cyA7gMIUBQCTyl4kugIpy8yA7ACqK8Uwk30lIFGOEV3rPDAELwQkr/9YjkaCPDQhCcsrAYlF1v8W8jAEYeQDY7qn6tNGWudfq+YUEr6uq6FZzBpJMUfWFDatLHMCciw2mRC+k81qCCA1DzK4aUVfrJpxnloZWCPVnOgYy8L3GvKjE96HpweQoy7iwVQclVutLOEKJxA8gaRCjSzgNI2zhh3bQhzBCQQPIHGaHaUd96GJbZz3Smmjy16u6j3FuKyNxcBarxqWWfYFE0tVVO1Rl3t1Mb05V00MQCJ71YHpNaMcsjWAfkQvPPkaNC7LqTG7JAhGXTKYf+VDeXAX9IvURoAwtTFHvyYIxtnd5tPkywrPafcwbeSuGVwFau3b76NO7SHQrvqhfFE8kM0Wvpv8gVYiYBlxL+fW/34bgP6bIC7JR7YPDubcHCPzIp4+cum7U6NlhZgK7lua3KGLeFwE2m+HblDYWSHG2SAfINuwBBfxbJEIuWZbBH4fAExD7cvaGVyXyH0dhiAYc92z3ZDfUVv+jgb8HrHy7WVO/8BFcy9vuTz+nwADAGnOR39Yg/QkAAAAAElFTkSuQmCC" alt="Slim"/></a>
-            </header>
-            <h1>Welcome to Slim!</h1>
-            <p>
-                Congratulations! Your Slim application is running. If this is
-                your first time using Slim, start with this <a href="http://docs.slimframework.com/#Hello-World" target="_blank">"Hello World" Tutorial</a>.
-            </p>
-            <section>
-                <h2>Get Started</h2>
-                <ol>
-                    <li>The application code is in <code>index.php</code></li>
-                    <li>Read the <a href="http://docs.slimframework.com/" target="_blank">online documentation</a></li>
-                    <li>Follow <a href="http://www.twitter.com/slimphp" target="_blank">@slimphp</a> on Twitter</li>
-                </ol>
-            </section>
-            <section>
-                <h2>Slim Framework Community</h2>
-
-                <h3>Support Forum and Knowledge Base</h3>
-                <p>
-                    Visit the <a href="http://help.slimframework.com" target="_blank">Slim support forum and knowledge base</a>
-                    to read announcements, chat with fellow Slim users, ask questions, help others, or show off your cool
-                    Slim Framework apps.
-                </p>
-
-                <h3>Twitter</h3>
-                <p>
-                    Follow <a href="http://www.twitter.com/slimphp" target="_blank">@slimphp</a> on Twitter to receive the very latest news
-                    and updates about the framework.
-                </p>
-            </section>
-            <section style="padding-bottom: 20px">
-                <h2>Slim Framework Extras</h2>
-                <p>
-                    Custom View classes for Smarty, Twig, Mustache, and other template
-                    frameworks are available online in a separate repository.
-                </p>
-                <p><a href="https://github.com/codeguy/Slim-Extras" target="_blank">Browse the Extras Repository</a></p>
-            </section>
-        </body>
-    </html>
-EOT;
-        echo $template;
-    }
-);
-
-// POST route
-$app->post(
-    '/post',
-    function () {
-        echo 'This is a POST route';
-    }
-);
-
-// PUT route
-$app->put(
-    '/put',
-    function () {
-        echo 'This is a PUT route';
-    }
-);
-
-// PATCH route
-$app->patch('/patch', function () {
-    echo 'This is a PATCH route';
+$app->get('/test', function () {
+	$app = \Slim\Slim::getInstance();
+	$cabang = getCabangURL();
+	$quorum = 0;
+	for ($i=0; $i < count($cabang); $i++) {
+		$cabang_tujuan = $cabang[$i];
+		$url = $cabang_tujuan."/ewallet/ping";
+		$ch = curl_init();
+		curl_setopt_array($ch, array(
+			CURLOPT_SSL_VERIFYPEER => 0,
+			CURLOPT_SSL_VERIFYHOST => 0,
+			CURLOPT_RETURNTRANSFER => TRUE,
+			CURLOPT_URL => $url,
+			CURLOPT_CONNECTTIMEOUT => 5,
+			CURLOPT_TIMEOUT => 5
+		));
+		$response = curl_exec($ch);
+		$response = json_decode($response);
+		if (!empty($response)) {
+			$quorum += $response->pong;
+		}
+	}
+	$app->response()->headers->set('Content-Type', 'application/json');
+	echo json_encode($quorum);
 });
 
-// DELETE route
-$app->delete(
-    '/delete',
-    function () {
-        echo 'This is a DELETE route';
-    }
-);
-
-// API group
-$app->group('/ewallet', function () use ($app) {
-
-    $app->get('/ping', function () {
-        ping();
-    });
-
-    $app->post('/books/:id', function ($id) {
-
-    });
-
-    $app->delete('/books/:id', function ($id) {
-
-    });
+$app->get('/view', function() {
+	$app->view()->setTemplatesDirectory('./view');
+  $app->render('index.php', array('hehe'=> 'wkwk'));
 });
+
+$app->get('/ping', function () {
+	ping();
+});
+
+$app->get('/getSaldo', function () use ($conn){
+	$quo = quorum();
+	if ( $quo > 4) {
+		$app = \Slim\Slim::getInstance();
+		$user_id = $app->request->get('user_id');
+		$output["nilai_saldo"] = getSaldo($conn, $user_id);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo json_encode($output);
+	} else {
+		echo "quorum berjumlah ".$quo.". Sehingga operasi tidak dapat dilakukan";
+	}
+});
+
+$app->get('/getTotalSaldo', function () use ($conn){
+	$quo = quorum();
+	if ( $quo > 8) {
+		$app = \Slim\Slim::getInstance();
+		$user_id = $app->request->get('user_id');
+		$output["nilai_saldo"] = getTotalSaldo($conn, $user_id);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo json_encode($output);
+	} else {
+		echo "quorum berjumlah ".$quo.". Sehingga operasi tidak dapat dilakukan";
+	}
+});
+
+$app->post('/register', function () use ($conn) {
+	$quo = quorum();
+	if ( $quo > 4) {
+		$app = \Slim\Slim::getInstance();
+		$json = json_decode($app->request->getBody());
+		$sql = "INSERT INTO user (user_id, ip_domisili, nama)
+		VALUES ('".$json->user_id."', '".$json->ip_domisili."', '".$json->nama."')";
+		if (mysqli_query($conn, $sql)) {
+			echo "New record created successfully";
+		} else {
+			echo "Error: " . $sql . "<br>" . mysqli_error($conn);
+		}
+	} else {
+		echo "quorum berjumlah ".$quo.". Sehingga operasi tidak dapat dilakukan";
+	}
+});
+
+$app->post('/requestTransfer', function () use ($conn){
+	$quo = quorum();
+	if ( $quo > 4) {
+		global $env;
+		$app = \Slim\Slim::getInstance();
+		$json = json_decode($app->request->getBody());
+		$cabang_tujuan = $json->cabang_tujuan;
+		$user_id = $json->user_id;
+		$nilai = $json->nilai;
+
+		$response = getSaldoCurl($env, $user_id);
+		if($response == -1){
+			$object['status_transfer'] = -1;
+			$object['message'] = 'user tidak ditemukan di cabang ilham.';
+			echo json_encode($object);
+		}else {
+			$saldo = $response;
+			if ($saldo < $nilai) {
+				$object['status_transfer'] = -1;
+				$object['message'] = 'saldo tidak cukup.';
+				echo json_encode($object);
+			}else {
+	        // call transfer
+				$object['user_id'] = $user_id;
+				$object['nilai'] = $nilai;
+				$ch = curl_init($cabang_tujuan."/ewallet/transfer");
+				curl_setopt_array($ch, array(
+					CURLOPT_POST => TRUE,
+					CURLOPT_RETURNTRANSFER => TRUE,
+					CURLOPT_HTTPHEADER => array('Content-Type:application/json; charset=utf-8'),
+					CURLOPT_POSTFIELDS => json_encode($object)
+					));
+				$response = curl_exec($ch);
+				$response = json_decode($response,true);
+				if($response['status_transfer'] == 0){
+					$saldo = getSaldoCurl($env, $user_id);
+					$saldo = $saldo - $nilai;
+					$sql = "UPDATE user SET saldo='$saldo' where user_id='$user_id'";
+					$result = $conn->query($sql);
+					if($result){
+						$object['status_transfer'] = 0;
+						$object['message'] = 'Transfer ke cabang tujuan BERHASIL';
+						echo json_encode($object);
+					}else{
+						$object['status_transfer'] = -1;
+						$object['message'] = 'Transfer ke cabang tujuan GAGAL';
+						echo json_encode($object);
+					}
+				}
+			}
+		}
+	} else {
+		echo "quorum berjumlah ".$quo.". Sehingga operasi tidak dapat dilakukan";
+	}
+});
+
+$app->post('/transfer', function () use ($conn) {
+	global $env;
+	$app = \Slim\Slim::getInstance();
+	$json = json_decode($app->request->getBody());
+	$user_id = $json->user_id;
+	$nilai = $json->nilai;
+
+	$response = getSaldoCurl($env, $user_id);
+	if($response == -1){
+		$object['status_transfer'] = -1;
+		$object['message'] = 'user tidak ditemukan di cabang ilham.';
+		echo json_encode($object);
+	}else{
+      // process transfer
+		$saldo = $response + $nilai;
+		$sql = "UPDATE user SET saldo='$saldo' where user_id='$user_id'";
+		$result = $conn->query($sql);
+		if($result){
+			$object['status_transfer'] = 0;
+			$object['message'] = 'Transfer ke cabang tujuan BERHASIL';
+			echo json_encode($object);
+		}else{
+			$object['status_transfer'] = -1;
+			$object['message'] = 'Transfer ke cabang tujuan GAGAL';
+			echo json_encode($object);
+		}
+	}
+});
+
+function getCabangURL(){
+	$cabang = array();
+	array_push($cabang, "https://ilham.sisdis.ui.ac.id");
+	array_push($cabang, "https://alhafis.sisdis.ui.ac.id");
+	array_push($cabang, "https://kurniawan.sisdis.ui.ac.id");
+	array_push($cabang, "https://radityo.sisdis.ui.ac.id");
+	array_push($cabang, "https://putra.sisdis.ui.ac.id");
+	array_push($cabang, "https://aditya.sisdis.ui.ac.id");
+	array_push($cabang, "https://azhari.sisdis.ui.ac.id");
+	array_push($cabang, "https://prakash.sisdis.ui.ac.id");
+	array_push($cabang, "https://ratna.sisdis.ui.ac.id");
+	return $cabang;
+}
+
+function getTotalSaldo($conn, $user_id){
+	$app = \Slim\Slim::getInstance();
+	$sql = "SELECT ip_domisili FROM user WHERE user_id = '".$user_id."'";
+	$result = $conn->query($sql);
+	$row = mysqli_fetch_row($result);
+	// cek ip domisili
+	if ($row[0] === 'ilham.sisdis.ui.ac.id') {
+		$cabang = getCabangURL();
+		$totalSaldo = 0;
+		for ($i=0; $i < count($cabang); $i++) {
+			$cabang_tujuan = $cabang[$i];
+			$url = $cabang_tujuan."/ewallet/getSaldo?user_id=".$user_id;
+			$ch = curl_init();
+			curl_setopt_array($ch, array(
+				CURLOPT_SSL_VERIFYPEER => 0,
+				CURLOPT_SSL_VERIFYHOST => 0,
+				CURLOPT_RETURNTRANSFER => TRUE,
+				CURLOPT_URL => $url
+			));
+			$response = curl_exec($ch);
+			$response = json_decode($response);
+			if (!empty($response) && $response->nilai_saldo >= 0) {
+				$totalSaldo += $response->nilai_saldo;
+			}
+		}
+		return $totalSaldo."";
+	} else {
+		$totalSaldo = 0;
+		$cabang_tujuan = $row[0];
+		$url = $cabang_tujuan."/ewallet/getTotalSaldo?user_id=".$user_id;
+		$ch = curl_init();
+		curl_setopt_array($ch, array(
+			CURLOPT_SSL_VERIFYPEER => 0,
+			CURLOPT_SSL_VERIFYHOST => 0,
+			CURLOPT_RETURNTRANSFER => TRUE,
+			CURLOPT_URL => $url
+		));
+		$response = curl_exec($ch);
+		$response = json_decode($response);
+		if (!empty($response)) {
+			$totalSaldo += $response->nilai_saldo;
+		}
+		return $totalSaldo."";
+	}
+}
 
 function ping(){
-    $app = \Slim\Slim::getInstance();
-    $output["pong"] = 1;
-    $app->response()->headers->set('Content-Type', 'application/json');
-    echo json_encode($output);
+	$app = \Slim\Slim::getInstance();
+	$output["pong"] = 1;
+	$app->response()->headers->set('Content-Type', 'application/json');
+	echo json_encode($output);
+}
+
+function getSaldoCurl($tujuan, $user_id){
+	global $env;
+	$url = $env."ewallet/getSaldo?user_id=".$user_id;
+	$ch = curl_init();
+	curl_setopt_array($ch, array(
+		CURLOPT_SSL_VERIFYPEER => 0,
+		CURLOPT_SSL_VERIFYHOST => 0,
+		CURLOPT_RETURNTRANSFER => TRUE,
+		CURLOPT_URL => $url
+		));
+	$response = curl_exec($ch);
+	$response = json_decode($response);
+	return $response->nilai_saldo;
+}
+
+function getSaldo($conn, $user_id){
+	$app = \Slim\Slim::getInstance();
+	$sql = "SELECT saldo FROM user WHERE user_id = '".$user_id."'";
+	$result = $conn->query($sql);
+	$row = mysqli_fetch_row($result);
+	if (count($row) > 0) {
+		return $row[0];
+	} else {
+		return "-1";
+	}
 }
 
 function quorum(){
-    
+	$app = \Slim\Slim::getInstance();
+	$cabang = getCabangURL();
+	$quorum = 0;
+	for ($i=0; $i < count($cabang); $i++) {
+		$cabang_tujuan = $cabang[$i];
+		$url = $cabang_tujuan."/ewallet/ping";
+		$ch = curl_init();
+		curl_setopt_array($ch, array(
+			CURLOPT_SSL_VERIFYPEER => 0,
+			CURLOPT_SSL_VERIFYHOST => 0,
+			CURLOPT_RETURNTRANSFER => TRUE,
+			CURLOPT_URL => $url,
+			CURLOPT_CONNECTTIMEOUT => 5,
+			CURLOPT_TIMEOUT => 5
+		));
+		$response = curl_exec($ch);
+		$response = json_decode($response);
+		if (!empty($response)) {
+			$quorum += $response->pong;
+		}
+	}
+	return $quorum;
 }
 
-/**
- * Step 4: Run the Slim application
- *
- * This method should be called last. This executes the Slim application
- * and returns the HTTP response to the HTTP client.
- */
 $app->run();
